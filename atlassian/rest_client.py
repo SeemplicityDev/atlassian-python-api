@@ -8,6 +8,7 @@ from requests_oauthlib import OAuth1, OAuth2
 from six.moves.urllib.parse import urlencode
 
 from atlassian.request_utils import get_default_logger
+from atlassian_jwt import encode
 
 log = get_default_logger(__name__)
 
@@ -51,6 +52,8 @@ class AtlassianRestAPI(object):
         kerberos=None,
         cloud=False,
         proxies=None,
+        secret=None,
+        app_key=None
     ):
         self.url = url
         self.username = username
@@ -77,6 +80,9 @@ class AtlassianRestAPI(object):
             self._create_kerberos_session(kerberos)
         elif cookies is not None:
             self._session.cookies.update(cookies)
+        elif secret is not None:
+            self._secret = secret
+            self._app_key = app_key
 
     def __enter__(self):
         return self
@@ -215,6 +221,11 @@ class AtlassianRestAPI(object):
             json_dump = None if not json else dumps(json)
         self.log_curl_debug(method=method, url=url, headers=headers, data=data if data else json_dump)
         headers = headers or self.default_headers
+
+        if self._secret is not None:
+            token = encode.encode_token(method, url, self._app_key, self._secret)
+            headers["Authorization"] = f"JWT {token}"
+
         response = self._session.request(
             method=method,
             url=url,

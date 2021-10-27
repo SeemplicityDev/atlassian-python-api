@@ -223,7 +223,7 @@ class AtlassianRestAPI(object):
         headers = headers or self.default_headers
 
         if hasattr(self, "_secret"):
-            token = encode.encode_token(method, f"/{path}", self._app_key, self._secret)
+            token = encode.encode_token(method, url[len(self.url):], self._app_key, self._secret)
             headers["Authorization"] = f"JWT {token}"
 
         response = self._session.request(

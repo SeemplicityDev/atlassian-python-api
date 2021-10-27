@@ -222,8 +222,8 @@ class AtlassianRestAPI(object):
         self.log_curl_debug(method=method, url=url, headers=headers, data=data if data else json_dump)
         headers = headers or self.default_headers
 
-        if self._secret is not None:
-            token = encode.encode_token(method, url, self._app_key, self._secret)
+        if hasattr(self, "_secret"):
+            token = encode.encode_token(method, f"/{path}", self._app_key, self._secret)
             headers["Authorization"] = f"JWT {token}"
 
         response = self._session.request(
